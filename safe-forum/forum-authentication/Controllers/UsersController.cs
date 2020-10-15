@@ -19,15 +19,15 @@ using Microsoft.IdentityModel.Tokens;
 namespace forum_authentication.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
-    public class LogInController : ControllerBase
+    [Route("api/[controller]")]
+    public class UsersController : ControllerBase
     {
-        private readonly ILogger<LogInController> _logger;
+        private readonly ILogger<UsersController> _logger;
         private IUserService _userService;
         private IMapper _mapper;
         private readonly AppSettings _appSettings;
 
-        public LogInController(ILogger<LogInController> logger, IUserService userService,
+        public UsersController(ILogger<UsersController> logger, IUserService userService,
             IMapper mapper, IOptions<AppSettings> appSettings)
         {
             _logger = logger;
@@ -87,51 +87,51 @@ namespace forum_authentication.Controllers
             }
         }
 
-        [JwtAuthorize]
-        [HttpGet]
-        public IActionResult GetAll()
-        {
-            var users = _userService.GetAll();
-            var userDtos = _mapper.Map<IList<UserDto>>(users);
-            return Ok(userDtos);
-        }
+        //[JwtAuthorize]
+        //[HttpGet]
+        //public IActionResult GetAll()
+        //{
+        //    var users = _userService.GetAll();
+        //    var userDtos = _mapper.Map<IList<UserDto>>(users);
+        //    return Ok(userDtos);
+        //}
 
-        [JwtAuthorize]
-        [HttpGet("{id}")]
-        public IActionResult GetById(int id)
-        {
-            var user = _userService.GetById(id);
-            var userDto = _mapper.Map<UserDto>(user);
-            return Ok(userDto);
-        }
+        //[JwtAuthorize]
+        //[HttpGet("{id}")]
+        //public IActionResult GetById(int id)
+        //{
+        //    var user = _userService.GetById(id);
+        //    var userDto = _mapper.Map<UserDto>(user);
+        //    return Ok(userDto);
+        //}
 
-        [JwtAuthorize]
-        [HttpPut("{id}")]
-        public IActionResult Update(int id, [FromBody]UserDto userDto)
-        {
-            // map dto to entity and set id
-            var user = _mapper.Map<User>(userDto);
-            user.Id = id;
+        //[JwtAuthorize]
+        //[HttpPut("{id}")]
+        //public IActionResult Update(int id, [FromBody]UserDto userDto)
+        //{
+        //    // map dto to entity and set id
+        //    var user = _mapper.Map<User>(userDto);
+        //    user.Id = id;
 
-            try
-            {
-                // save 
-                _userService.Update(user, userDto.Password);
-                return Ok();
-            }
-            catch (ApplicationException ex)
-            {
-                // return error message if there was an exception
-                return BadRequest(new { message = ex.Message });
-            }
-        }
+        //    try
+        //    {
+        //        // save 
+        //        _userService.Update(user, userDto.Password);
+        //        return Ok();
+        //    }
+        //    catch (ApplicationException ex)
+        //    {
+        //        // return error message if there was an exception
+        //        return BadRequest(new { message = ex.Message });
+        //    }
+        //}
 
-        [JwtAuthorize]
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
-        {
-            _userService.Delete(id);
-            return Ok();
-        }
+        //[JwtAuthorize]
+        //[HttpDelete("{id}")]
+        //public IActionResult Delete(int id)
+        //{
+        //    _userService.Delete(id);
+        //    return Ok();
+        //}
     }
 }
