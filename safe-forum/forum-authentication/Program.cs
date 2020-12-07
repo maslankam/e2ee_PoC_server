@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using forum_authentication.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -13,6 +14,11 @@ namespace forum_authentication
     {
         public static void Main(string[] args)
         {
+            var cs = new CertificateService();
+            //cs.SignCsr("",""); 
+
+
+
             CreateHostBuilder(args).Build().Run();
         }
 

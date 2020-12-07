@@ -69,7 +69,5 @@ namespace forum_authentication.Controllers
             }
             return Ok(messages);
         }
-
-
     }
 }

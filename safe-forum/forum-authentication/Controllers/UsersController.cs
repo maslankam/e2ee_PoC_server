@@ -26,14 +26,16 @@ namespace forum_authentication.Controllers
         private IUserService _userService;
         private IMapper _mapper;
         private readonly AppSettings _appSettings;
+        private readonly ICertificateService _certificateService;
 
         public UsersController(ILogger<UsersController> logger, IUserService userService,
-            IMapper mapper, IOptions<AppSettings> appSettings)
+            IMapper mapper, IOptions<AppSettings> appSettings, ICertificateService certificateService)
         {
             _logger = logger;
             _userService = userService;
             _mapper = mapper;
             _appSettings = appSettings.Value;
+            _certificateService = certificateService;
         }
 
         
@@ -58,6 +60,8 @@ namespace forum_authentication.Controllers
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var tokenString = tokenHandler.WriteToken(token);
+
+            //TODO: Ciasteczko z Http only
 
             // return basic user info (without password) and token to store client side
             return Ok(new
@@ -87,14 +91,57 @@ namespace forum_authentication.Controllers
             }
         }
 
-        //[JwtAuthorize]
-        //[HttpGet]
-        //public IActionResult GetAll()
-        //{
-        //    var users = _userService.GetAll();
-        //    var userDtos = _mapper.Map<IList<UserDto>>(users);
-        //    return Ok(userDtos);
-        //}
+        [JwtAuthorize]
+        [HttpPost("certificate")]
+        [HttpPost]
+        public IActionResult SignNewCertificate([FromBody]CsrDto csrDto)
+        {
+            var user = HttpContext.Items["User"] as User;
+            string certificate = string.Empty;
+            try
+            {
+                certificate = _certificateService.SignCsr(csrDto.Csr, user.Username);
+            }
+            catch(ApplicationException e)
+            {
+                BadRequest(e.Message);
+            }
+
+            try
+            {
+                _userService.UpdateUserCertificate(user.Username, certificate);
+            }
+            catch (ApplicationException e)
+            {
+                BadRequest(e.Message);
+            }
+            
+            return Ok(certificate);
+        }
+
+        [JwtAuthorize]
+        [HttpPost("certificate")]
+        [HttpGet]
+        public IActionResult GetUserCertificate([FromQuery]string username)
+        {
+            string certificate = null;
+            try
+            {
+                _userService.GetUserCertificate(username);
+            }
+            catch (ApplicationException e)
+            {
+                BadRequest(e.Message);
+            }
+            return Ok(new CertificateDto() { Certificate = certificate } );
+        }
+
+        [JwtAuthorize]
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            return Ok(_userService.GetAllUsernames());
+        }
 
         //[JwtAuthorize]
         //[HttpGet("{id}")]

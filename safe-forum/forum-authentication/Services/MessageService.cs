@@ -19,7 +19,7 @@ namespace forum_authentication.Services
 
         public Message[] GetMessages(string from, string requestor)
         {
-            return _context.Messages.Where(m => m.From == from && m.To == requestor).ToArray();
+            return _context.Messages.Where(m => m.Sender == from && m.Recipent == requestor).ToArray();
         }
 
         public void SaveMessage(SendMessageDto sendMessageDto, string sender)
@@ -31,8 +31,8 @@ namespace forum_authentication.Services
             var message = new Message
             {
                 Body = sendMessageDto.Body,
-                To = sendMessageDto.Recipent,
-                From = sender,
+                Recipent = sendMessageDto.Recipent,
+                Sender = sender,
                 Timestamp = DateTime.UtcNow
             };
 

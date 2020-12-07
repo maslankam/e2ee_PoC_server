@@ -9,8 +9,9 @@ namespace forum_authentication.Entities
     {
         public int Id { get; set; }
         public DateTime Timestamp { get; set; }
-        public string From { get; set; }
-        public string To { get; set; }
+        public string Sender { get; set; }
+        public string Recipent { get; set; }
         public string Body { get; set; }
+        public string Signature { get; set; }
     }
 }

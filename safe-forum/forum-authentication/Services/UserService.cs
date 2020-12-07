@@ -37,7 +37,7 @@ namespace forum_authentication.Services
 
         public IEnumerable<User> GetAll()
         {
-            return _context.Users;
+            return _context.Users.ToArray();
         }
 
         public User GetById(int id)
@@ -107,6 +107,38 @@ namespace forum_authentication.Services
             }
         }
 
+        public IEnumerable<string> GetAllUsernames()
+        {
+            return _context.Users.Select(u => u.Username).ToArray();
+        }
+
+        public void UpdateUserCertificate(string username, string certificate)
+        {
+            var searchUser = _context.Users.SingleOrDefault(u => u.Username == username);
+            if(searchUser == null)
+            {
+                throw new ApplicationException("Username not found");
+            }
+
+            var user = new User() {Id = searchUser.Id, Certificate = certificate };
+            using (_context)
+            {
+                _context.Users.Attach(user);
+                _context.Entry(user).Property(x => x.Certificate).IsModified = true;
+                _context.SaveChanges();
+            }
+        }
+
+        public string GetUserCertificate(string username)
+        {
+            var certificate = _context.Users.FirstOrDefault(u => u.Username == username)?.Certificate;
+            if(certificate == null)
+            {
+                throw new ApplicationException("Username not exist");
+            }
+            return certificate;
+        }
+
         // private helper methods
 
         private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
@@ -114,6 +146,9 @@ namespace forum_authentication.Services
             if (password == null) throw new ArgumentNullException("password");
             if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Value cannot be empty or whitespace only string.", "password");
 
+
+            //TODO: argone albo bcrypt 
+            
             using (var hmac = new System.Security.Cryptography.HMACSHA512())
             {
                 passwordSalt = hmac.Key;
