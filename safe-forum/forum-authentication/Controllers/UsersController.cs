@@ -11,10 +11,12 @@ using forum_authentication.Entities;
 using forum_authentication.Helpers;
 using forum_authentication.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Net.Http.Headers;
 
 namespace forum_authentication.Controllers
 {
@@ -55,20 +57,25 @@ namespace forum_authentication.Controllers
                 {
                     new Claim(ClaimTypes.Name, user.Id.ToString())
                 }),
-                Expires = DateTime.UtcNow.AddDays(7),
+                Expires = DateTime.UtcNow.AddMinutes(30),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var tokenString = tokenHandler.WriteToken(token);
 
-            //TODO: Ciasteczko z Http only
+            HttpContext.Response.Cookies.Append("token", tokenString,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = DateTime.UtcNow.AddMinutes(30),
+                Secure = true
+            });
 
             // return basic user info (without password) and token to store client side
             return Ok(new
             {
-                Id = user.Id,
-                Username = user.Username,
-                Token = tokenString
+                user.Id,
+                user.Username
             });
         }
 
