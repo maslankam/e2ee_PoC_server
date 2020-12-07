@@ -1,8 +1,11 @@
 ﻿using forum_authentication.Entities;
 using forum_authentication.Helpers;
+using Konscious.Security.Cryptography;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace forum_authentication.Services
@@ -146,15 +149,36 @@ namespace forum_authentication.Services
             if (password == null) throw new ArgumentNullException("password");
             if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Value cannot be empty or whitespace only string.", "password");
 
-
-            //TODO: argone albo bcrypt 
-            
-            using (var hmac = new System.Security.Cryptography.HMACSHA512())
-            {
-                passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-            }
+            passwordSalt = CreateSalt();
+            passwordHash = HashPassword(password, passwordSalt);
         }
+
+        private static byte[] CreateSalt()
+        {
+            var buffer = new byte[16];
+            var rng = new RNGCryptoServiceProvider();
+            rng.GetBytes(buffer);
+            return buffer;
+        }
+
+        private static byte[] HashPassword(string password, byte[] salt)
+        {
+            var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password));
+
+            argon2.Salt = salt;
+            argon2.DegreeOfParallelism = 8; // four cores
+            argon2.Iterations = 4;
+            argon2.MemorySize = 1024 * 1024; // 1 GB
+
+            return argon2.GetBytes(16);
+        }
+
+        private static bool VerifyHash(string password, byte[] salt, byte[] hash)
+        {
+            var newHash = HashPassword(password, salt);
+            return hash.SequenceEqual(newHash);
+        }
+
 
         private static bool VerifyPasswordHash(string password, byte[] storedHash, byte[] storedSalt)
         {
@@ -163,16 +187,7 @@ namespace forum_authentication.Services
             if (storedHash.Length != 64) throw new ArgumentException("Invalid length of password hash (64 bytes expected).", "passwordHash");
             if (storedSalt.Length != 128) throw new ArgumentException("Invalid length of password salt (128 bytes expected).", "passwordHash");
 
-            using (var hmac = new System.Security.Cryptography.HMACSHA512(storedSalt))
-            {
-                var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-                for (int i = 0; i < computedHash.Length; i++)
-                {
-                    if (computedHash[i] != storedHash[i]) return false;
-                }
-            }
-
-            return true;
+            return VerifyPasswordHash(password, storedHash, storedSalt);
         }
     }
 }
