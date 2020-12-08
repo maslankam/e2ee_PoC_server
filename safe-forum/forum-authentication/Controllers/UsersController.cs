@@ -21,23 +21,21 @@ using Microsoft.Net.Http.Headers;
 namespace forum_authentication.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api")]
     public class UsersController : ControllerBase
     {
         private readonly ILogger<UsersController> _logger;
         private IUserService _userService;
         private IMapper _mapper;
         private readonly AppSettings _appSettings;
-        private readonly ICertificateService _certificateService;
 
         public UsersController(ILogger<UsersController> logger, IUserService userService,
-            IMapper mapper, IOptions<AppSettings> appSettings, ICertificateService certificateService)
+            IMapper mapper, IOptions<AppSettings> appSettings)
         {
             _logger = logger;
             _userService = userService;
             _mapper = mapper;
             _appSettings = appSettings.Value;
-            _certificateService = certificateService;
         }
 
         
@@ -74,7 +72,7 @@ namespace forum_authentication.Controllers
             // return basic user info (without password) and token to store client side
             return Ok(new
             {
-                user.Id,
+                //user.Id,
                 user.Username
             });
         }
@@ -82,13 +80,17 @@ namespace forum_authentication.Controllers
         [HttpPost("register")]
         public IActionResult Register([FromBody]UserDto userDto)
         {
-            // map dto to entity
-            var user = _mapper.Map<User>(userDto);
+            if( string.IsNullOrEmpty(userDto.Username) 
+                || string.IsNullOrEmpty(userDto.Password) 
+                || string.IsNullOrEmpty(userDto.Certificate))
+            {
+                return BadRequest("Missing registration data)");
+            }
 
             try
             {
                 // save 
-                _userService.Create(user, userDto.Password);
+                _userService.Create(userDto);
                 return Ok();
             }
             catch (ApplicationException ex)
@@ -99,36 +101,7 @@ namespace forum_authentication.Controllers
         }
 
         [JwtAuthorize]
-        [HttpPost("certificate")]
-        [HttpPost]
-        public IActionResult SignNewCertificate([FromBody]CsrDto csrDto)
-        {
-            var user = HttpContext.Items["User"] as User;
-            string certificate = string.Empty;
-            try
-            {
-                certificate = _certificateService.SignCsr(csrDto.Csr, user.Username);
-            }
-            catch(ApplicationException e)
-            {
-                BadRequest(e.Message);
-            }
-
-            try
-            {
-                _userService.UpdateUserCertificate(user.Username, certificate);
-            }
-            catch (ApplicationException e)
-            {
-                BadRequest(e.Message);
-            }
-            
-            return Ok(certificate);
-        }
-
-        [JwtAuthorize]
-        [HttpPost("certificate")]
-        [HttpGet]
+        [HttpGet("certificate")]
         public IActionResult GetUserCertificate([FromQuery]string username)
         {
             string certificate = null;
@@ -142,50 +115,5 @@ namespace forum_authentication.Controllers
             }
             return Ok(new CertificateDto() { Certificate = certificate } );
         }
-
-        [JwtAuthorize]
-        [HttpGet]
-        public IActionResult GetAll()
-        {
-            return Ok(_userService.GetAllUsernames());
-        }
-
-        //[JwtAuthorize]
-        //[HttpGet("{id}")]
-        //public IActionResult GetById(int id)
-        //{
-        //    var user = _userService.GetById(id);
-        //    var userDto = _mapper.Map<UserDto>(user);
-        //    return Ok(userDto);
-        //}
-
-        //[JwtAuthorize]
-        //[HttpPut("{id}")]
-        //public IActionResult Update(int id, [FromBody]UserDto userDto)
-        //{
-        //    // map dto to entity and set id
-        //    var user = _mapper.Map<User>(userDto);
-        //    user.Id = id;
-
-        //    try
-        //    {
-        //        // save 
-        //        _userService.Update(user, userDto.Password);
-        //        return Ok();
-        //    }
-        //    catch (ApplicationException ex)
-        //    {
-        //        // return error message if there was an exception
-        //        return BadRequest(new { message = ex.Message });
-        //    }
-        //}
-
-        //[JwtAuthorize]
-        //[HttpDelete("{id}")]
-        //public IActionResult Delete(int id)
-        //{
-        //    _userService.Delete(id);
-        //    return Ok();
-        //}
     }
 }

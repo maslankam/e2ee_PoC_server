@@ -14,7 +14,7 @@ using Microsoft.Extensions.Options;
 
 namespace forum_authentication.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api")]
     [ApiController]
     public class MessagesController : ControllerBase
     {
@@ -54,7 +54,7 @@ namespace forum_authentication.Controllers
         }
 
         [JwtAuthorize]
-        [HttpGet]
+        [HttpGet("receive")]
         public IActionResult Messages([FromQuery] string from)
         {
             var user = HttpContext.Items["User"] as User;

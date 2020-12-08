@@ -1,4 +1,5 @@
-﻿using forum_authentication.Entities;
+﻿using forum_authentication.Dtos;
+using forum_authentication.Entities;
 using forum_authentication.Helpers;
 using Konscious.Security.Cryptography;
 using System;
@@ -31,7 +32,7 @@ namespace forum_authentication.Services
                 return null;
 
             // check if password is correct
-            if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
+            if (!VerifyHash(password, user.PasswordSalt, user.PasswordHash))
                 return null;
 
             // authentication successful
@@ -48,25 +49,27 @@ namespace forum_authentication.Services
             return _context.Users.Find(id);
         }
 
-        public User Create(User user, string password)
+        public void Create(UserDto userDto)
         {
-            // validation
-            if (string.IsNullOrWhiteSpace(password))
-                throw new ApplicationException("Password is required");
+            if (_context.Users.Any(x => x.Username == userDto.Username))
+                throw new ApplicationException("Username \"" + userDto.Username + "\" is already taken");
 
-            if (_context.Users.Any(x => x.Username == user.Username))
-                throw new ApplicationException("Username \"" + user.Username + "\" is already taken");
+            if (VerifyCertificate(userDto.Username, userDto.Certificate))
+                throw new ApplicationException(@"At least one of certificate requirements not met: - Subject common name must be identical with username - Algorithm signature: sha256");
 
             byte[] passwordHash, passwordSalt;
-            CreatePasswordHash(password, out passwordHash, out passwordSalt);
+            CreatePasswordHash(userDto.Password, out passwordHash, out passwordSalt);
 
-            user.PasswordHash = passwordHash;
-            user.PasswordSalt = passwordSalt;
+            var newUser = new User()
+            {
+                Certificate = userDto.Certificate,
+                Username = userDto.Username,
+                PasswordHash = passwordHash,
+                PasswordSalt = passwordSalt
+            };
 
-            _context.Users.Add(user);
+            _context.Users.Add(newUser);
             _context.SaveChanges();
-
-            return user;
         }
 
         public void Update(User userParam, string password = null)
@@ -142,8 +145,6 @@ namespace forum_authentication.Services
             return certificate;
         }
 
-        // private helper methods
-
         private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
             if (password == null) throw new ArgumentNullException("password");
@@ -179,15 +180,17 @@ namespace forum_authentication.Services
             return hash.SequenceEqual(newHash);
         }
 
-
-        private static bool VerifyPasswordHash(string password, byte[] storedHash, byte[] storedSalt)
+        private bool VerifyCertificate(string username, string certificate)
         {
-            if (password == null) throw new ArgumentNullException("password");
-            if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Value cannot be empty or whitespace only string.", "password");
-            if (storedHash.Length != 64) throw new ArgumentException("Invalid length of password hash (64 bytes expected).", "passwordHash");
-            if (storedSalt.Length != 128) throw new ArgumentException("Invalid length of password salt (128 bytes expected).", "passwordHash");
+            var decodedCertificate = Encoding.UTF8.GetBytes(certificate);
 
-            return VerifyPasswordHash(password, storedHash, storedSalt);
+            var x509 = new System.Security.Cryptography.X509Certificates.X509Certificate2(decodedCertificate);
+            if (x509.Subject != username) return false;
+            if (x509.SignatureAlgorithm.FriendlyName != "sha256RSA") return false;
+            if (x509.PublicKey.Key.KeySize != 2048) return false;
+            return true;
         }
+
+
     }
 }

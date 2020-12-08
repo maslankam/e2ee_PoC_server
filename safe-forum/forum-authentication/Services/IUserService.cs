@@ -1,4 +1,5 @@
-﻿using forum_authentication.Entities;
+﻿using forum_authentication.Dtos;
+using forum_authentication.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace forum_authentication.Services
         IEnumerable<User> GetAll();
         IEnumerable<string> GetAllUsernames();
         User GetById(int id);
-        User Create(User user, string password);
+        void Create(UserDto userDto);
         void Update(User user, string password = null);
         void Delete(int id);
         void UpdateUserCertificate(string username, string certificate);
