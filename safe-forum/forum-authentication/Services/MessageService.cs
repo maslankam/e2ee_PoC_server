@@ -17,9 +17,12 @@ namespace forum_authentication.Services
             _context = context;
         }
 
-        public Message[] GetMessages(string from, string requestor)
+        public Message[] GetMessages(string from, string requestor, int limit)
         {
-            return _context.Messages.Where(m => m.Sender == from && m.Recipent == requestor).ToArray();
+            return _context.Messages.Where(m => m.Sender == from && m.Recipent == requestor)
+                .OrderBy(x => x.Timestamp)
+                //.TakeLast(limit)
+                .ToArray();
         }
 
         public void SaveMessage(SendMessageDto sendMessageDto, string sender)
@@ -33,7 +36,8 @@ namespace forum_authentication.Services
                 Body = sendMessageDto.Body,
                 Recipent = sendMessageDto.Recipent,
                 Sender = sender,
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.UtcNow,
+                Signature = sendMessageDto.Signature
             };
 
             _context.Messages.Add(message);

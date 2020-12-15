@@ -107,7 +107,7 @@ namespace forum_authentication.Controllers
             string certificate = null;
             try
             {
-                _userService.GetUserCertificate(username);
+                certificate = _userService.GetUserCertificate(username);
             }
             catch (ApplicationException e)
             {

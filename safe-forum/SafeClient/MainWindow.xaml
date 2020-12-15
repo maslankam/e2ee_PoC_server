@@ -6,7 +6,27 @@
         xmlns:local="clr-namespace:SafeClient"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-
+    <Grid RenderTransformOrigin="0.5,0.5">
+        <Grid.RenderTransform>
+            <TransformGroup>
+                <ScaleTransform/>
+                <SkewTransform/>
+                <RotateTransform Angle="-0.578"/>
+                <TranslateTransform/>
+            </TransformGroup>
+        </Grid.RenderTransform>
+        <Button x:Name="RegisterButton" Content="Register" HorizontalAlignment="Right" Margin="0,0,698,320" VerticalAlignment="Bottom"/>
+        <TextBox x:Name="textBox" Margin="0,0,632,407" Text="Username" TextWrapping="Wrap" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="153"/>
+        <TextBox x:Name="textBox_Copy" Margin="0,0,632,384" Text="Password" TextWrapping="Wrap" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="153"/>
+        <TextBox x:Name="textBox_Copy1" Margin="0,0,632,361" Text="Certificate file*" TextWrapping="Wrap" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="153"/>
+        <TextBlock x:Name="textBlock" HorizontalAlignment="Right" Margin="0,0,609,385" TextWrapping="Wrap" VerticalAlignment="Bottom"><Run Language="pl-pl" Text="or"/></TextBlock>
+        <TextBox x:Name="textBox_Copy2" Margin="0,0,445,406" Text="Username" TextWrapping="Wrap" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="153"/>
+        <TextBox x:Name="textBox_Copy3" Margin="0,0,445,383" Text="Password" TextWrapping="Wrap" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="153"/>
+        <Button x:Name="RegisterButton_Copy" Content="Log in" HorizontalAlignment="Right" Margin="0,0,508,319" VerticalAlignment="Bottom"/>
+        <Rectangle HorizontalAlignment="Left" Height="135" Margin="10,3,0,0" Stroke="Black" VerticalAlignment="Top" Width="355"/>
+        <TextBlock x:Name="textBlock1" HorizontalAlignment="Left" Margin="28,151,0,0" Text="Please log in" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBox x:Name="textBox1" HorizontalAlignment="Left" Margin="31,224,0,0" Text="Message" TextWrapping="Wrap" VerticalAlignment="Top" Width="119" Height="113"/>
+        <TextBox x:Name="textBox1_Copy" HorizontalAlignment="Left" Margin="31,200,0,0" Text="Recipent" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <Button x:Name="button" Content="Send" HorizontalAlignment="Left" Margin="34,344,0,0" VerticalAlignment="Top" Width="58"/>
     </Grid>
 </Window>

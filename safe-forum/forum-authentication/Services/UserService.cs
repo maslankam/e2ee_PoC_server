@@ -54,7 +54,7 @@ namespace forum_authentication.Services
             if (_context.Users.Any(x => x.Username == userDto.Username))
                 throw new ApplicationException("Username \"" + userDto.Username + "\" is already taken");
 
-            if (VerifyCertificate(userDto.Username, userDto.Certificate))
+            if (!VerifyCertificate(userDto.Username, userDto.Certificate))
                 throw new ApplicationException(@"At least one of certificate requirements not met: - Subject common name must be identical with username - Algorithm signature: sha256");
 
             byte[] passwordHash, passwordSalt;
@@ -185,8 +185,9 @@ namespace forum_authentication.Services
             var decodedCertificate = Encoding.UTF8.GetBytes(certificate);
 
             var x509 = new System.Security.Cryptography.X509Certificates.X509Certificate2(decodedCertificate);
-            if (x509.Subject != username) return false;
-            if (x509.SignatureAlgorithm.FriendlyName != "sha256RSA") return false;
+            var commonName = x509.Subject.Split(',').First(x509 => x509.Trim().StartsWith("CN=")).Trim().Substring(3);
+            if (commonName != username) return false;
+            if (x509.SignatureAlgorithm.FriendlyName != "sha512RSA") return false;
             if (x509.PublicKey.Key.KeySize != 2048) return false;
             return true;
         }

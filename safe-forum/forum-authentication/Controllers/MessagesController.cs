@@ -55,13 +55,13 @@ namespace forum_authentication.Controllers
 
         [JwtAuthorize]
         [HttpGet("receive")]
-        public IActionResult Messages([FromQuery] string from)
+        public IActionResult Messages([FromQuery] string from, int limit)
         {
             var user = HttpContext.Items["User"] as User;
             Message[] messages = null;
             try
             {
-                messages = _messageService.GetMessages(from, user.Username);
+                messages = _messageService.GetMessages(from, user.Username, limit);
             }
             catch(ApplicationException e)
             {

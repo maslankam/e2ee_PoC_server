@@ -14,11 +14,6 @@ namespace forum_authentication
     {
         public static void Main(string[] args)
         {
-            var cs = new CertificateService();
-            //cs.SignCsr("",""); 
-
-
-
             CreateHostBuilder(args).Build().Run();
         }
 
